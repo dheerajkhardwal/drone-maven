@@ -1,0 +1,9 @@
+FROM plugins/base:mulitarch
+
+LABEL maintainer="Dheeraj Khardwal <dheeraj@khardwal.com>" \
+  org.label-schema.name="Drone Maven" \
+  org.label-schema.vendor="Dheeraj Khardwal" \
+  org.label-schema.schema-version="1.0"
+
+ADD release/linux/arm/ /bin/
+ENTRYPOINT [ "/bin/" ]
