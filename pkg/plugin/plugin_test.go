@@ -7,6 +7,19 @@ package plugin
 
 import "testing"
 
+import "github.com/drone-plugins/drone-plugin-lib/pkg/plugin"
+import "github.com/drone-plugins/drone-plugin-lib/pkg/urfave"
+
 func TestPlugin(t *testing.T) {
-	t.Skip()
+	settings := Settings{
+		UseCentral: true,
+		Servers: []server{
+			{ID: "Nexus", Username: "dheeraj@domain.io", Password: "HelloHello!"},
+		},
+		Repos: []repo{
+			{ID: "Nexus", URL: "https://repo.domain.io/repo/maven", Releases: true, Snapshots: true},
+		},
+	}
+
+	New(settings, plugin.Pipeline{}, urfave.Network{}).Exec()
 }
