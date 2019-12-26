@@ -24,7 +24,7 @@ var (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = ""
+	app.Name = "drone-maven"
 	app.Usage = ""
 	app.Action = run
 	app.Flags = append(settingsFlags(), urfave.Flags()...)

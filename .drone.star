@@ -1,4 +1,4 @@
-#  build
+# drone-maven build
 
 def main(ctx):
   before = testing()
@@ -100,7 +100,7 @@ def linux(arch):
         },
         'commands': [
           'go version',
-          'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/%s/ ./cmd/' % arch,
+          'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/linux/%s/drone-maven ./cmd/drone-maven' % arch,
         ],
         'when': {
           'event': {
@@ -119,7 +119,7 @@ def linux(arch):
         },
         'commands': [
           'go version',
-          'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/%s/ ./cmd/' % arch,
+          'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/linux/%s/drone-maven ./cmd/drone-maven' % arch,
         ],
         'when': {
           'event': [
@@ -132,7 +132,7 @@ def linux(arch):
         'image': 'golang:1.13',
         'pull': 'always',
         'commands': [
-          './release/linux/%s/ --help' % arch
+          './release/linux/%s/drone-maven --help' % arch
         ]
       },
       {
@@ -219,7 +219,7 @@ def windows(version):
         },
         'commands': [
           'go version',
-          'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/windows/amd64/.exe ./cmd/',
+          'go build -v -ldflags "-X main.version=${DRONE_COMMIT_SHA:0:8}" -a -tags netgo -o release/windows/amd64/drone-maven.exe ./cmd/drone-maven',
         ],
         'when': {
           'event': {
@@ -236,7 +236,7 @@ def windows(version):
         },
         'commands': [
           'go version',
-          'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/windows/amd64/.exe ./cmd/',
+          'go build -v -ldflags "-X main.version=${DRONE_TAG##v}" -a -tags netgo -o release/windows/amd64/drone-maven.exe ./cmd/drone-maven',
         ],
         'when': {
           'event':  [
@@ -247,7 +247,7 @@ def windows(version):
       {
         'name': 'executable',
         'commands': [
-          './release/windows/amd64/.exe --help',
+          './release/windows/amd64/drone-maven.exe --help',
         ]
       },
       {

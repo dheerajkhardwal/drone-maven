@@ -1,10 +1,10 @@
 # escape=`
 FROM plugins/base:windows-1909-amd64
 
-LABEL maintainer="Dheeraj Khardwal <dheeraj@khardwal.com>" \
-  org.label-schema.name="Drone Maven" \
-  org.label-schema.vendor="Dheeraj Khardwal" \
+LABEL maintainer="Dheeraj Khardwal <dheeraj@khardwal.com>" `
+  org.label-schema.name="Drone Maven" `
+  org.label-schema.vendor="Dheeraj Khardwal" `
   org.label-schema.schema-version="1.0"
 
-ADD release/windows/amd64/.exe C:/bin/.exe
-ENTRYPOINT [ "C:\\bin\\.exe" ]
+ADD release/windows/amd64/drone-maven.exe C:/bin/drone-maven.exe
+ENTRYPOINT [ "C:\\bin\\drone-maven.exe" ]
