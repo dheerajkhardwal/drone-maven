@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Drone Plugins project authors.
+// Copyright (c) 2020, the Drone Maven project authors.
 // Please see the AUTHORS file for details. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be
 // found in the LICENSE file.
@@ -11,11 +11,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/drone-plugins/drone-plugin-lib/pkg/urfave"
-	"github.com/sirupsen/logrus"
+	"github.com/drone-plugins/drone-plugin-lib/errors"
+	"github.com/drone-plugins/drone-plugin-lib/urfave"
 	"github.com/urfave/cli/v2"
-
-	"github.com/dheerajkhardwal/drone-maven/pkg/plugin"
+	"github.com/dheerajkhardwal/drone-maven/plugin"
 )
 
 var (
@@ -25,13 +24,13 @@ var (
 func main() {
 	app := cli.NewApp()
 	app.Name = "drone-maven"
-	app.Usage = ""
+	app.Usage = "Plugin to generate settings.xml"
+	app.Version = version
 	app.Action = run
 	app.Flags = append(settingsFlags(), urfave.Flags()...)
 
-	// Run the application
 	if err := app.Run(os.Args); err != nil {
-		logrus.Fatal(err)
+		errors.HandleExit(err)
 	}
 }
 
@@ -44,14 +43,12 @@ func run(ctx *cli.Context) error {
 		urfave.NetworkFromContext(ctx),
 	)
 
-	// Validate the settings
 	if err := plugin.Validate(); err != nil {
-		return fmt.Errorf("Validation failed %w", err)
+		return err
 	}
 
-	// Run the plugin
-	if err := plugin.Exec(); err != nil {
-		return fmt.Errorf("Execution failed %w", err)
+	if err := plugin.Execute(); err != nil {
+		return err
 	}
 
 	return nil
