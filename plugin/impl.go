@@ -6,14 +6,62 @@
 package plugin
 
 import (
+	"fmt"
+	"os"
 	"os/user"
 	"path"
 	"text/template"
-	"fmt"
-	"os"
-	
+
 	log "github.com/sirupsen/logrus"
 )
+
+const settingsTemplate = `
+<?xml version="1.0" encoding="UTF-8" ?>
+<settings>
+    <servers>
+        {{range .Servers}}
+        <server>
+            <id>{{.ID}}</id>
+            <username>{{.Username}}</username>
+            <password>{{.Password}}</password>
+        </server>
+        {{end}}
+    </servers>
+
+    <profiles>
+        <profile>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                {{if .UseCentral}}
+                <repository>
+                    <id>central</id>
+                    <url>https://repo.maven.apache.org/maven2/</url>
+                </repository> 
+                {{end}}
+                {{range .Repos}}
+                <repository>
+                    <id>{{.ID}}</id>
+                    <url>{{.URL}}</url>
+                    <layout>default</layout>
+                    {{if .Releases}}
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases> 
+                    {{end}}
+                    {{if .Snapshots}}
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    {{end}}
+                </repository>
+                {{end}}
+            </repositories>
+        </profile>
+    </profiles>
+</settings>
+`
 
 // Server structure.
 type server struct {
@@ -54,14 +102,14 @@ func (p *Plugin) Execute() error {
 	if err != nil {
 		fmt.Println(err)
 		settingsFile.Close()
-        return nil;
-    }
+		return nil
+	}
 
 	log.WithFields(log.Fields{
 		"path": settingsPath,
 	}).Info("Writing settings.xml")
 
-	tmpl := template.Must(template.ParseFiles("settings.xml"))
+	tmpl := template.Must(template.New("mvn").Parse(settingsTemplate))
 	tmpl.Execute(settingsFile, p.settings)
 	settingsFile.Close()
 	return nil
