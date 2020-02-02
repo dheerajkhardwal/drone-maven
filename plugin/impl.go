@@ -65,23 +65,23 @@ const settingsTemplate = `
 
 // Server structure.
 type server struct {
-	ID       string
-	Username string
-	Password string
+	ID       string	`yaml:"id"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 type repo struct {
-	ID        string
-	URL       string
-	Releases  bool
-	Snapshots bool
+	ID        string	`yaml:"id"`
+	URL       string	`yaml:"url"`
+	Releases  bool		`yaml:"releases"`
+	Snapshots bool		`yaml:"snapshots"`
 }
 
 // Settings for the plugin.
 type Settings struct {
-	UseCentral bool
-	Servers    []server
-	Repos      []repo
+	UseCentral bool		`yaml:"use_central"`
+	Servers    []server	`yaml:"servers"`
+	Repos      []repo	`yaml:"repos"`
 }
 
 // Validate handles the settings validation of the plugin.
