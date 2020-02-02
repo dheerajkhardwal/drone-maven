@@ -1,4 +1,4 @@
-FROM plugins/base:mulitarch
+FROM plugins/base:linux-arm64
 
 LABEL maintainer="Dheeraj Khardwal <dheeraj@khardwal.com>" \
   org.label-schema.name="Drone Maven" \
