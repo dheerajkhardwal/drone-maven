@@ -8,7 +8,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/drone-plugins/drone-plugin-lib/errors"
