@@ -16,7 +16,7 @@ import (
 )
 
 const settingsTemplate = `
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <settings>
     <servers>
         {{range .Servers}}
@@ -65,23 +65,23 @@ const settingsTemplate = `
 
 // Server structure.
 type server struct {
-	ID       string	`yaml:"id"`
+	ID       string `yaml:"id"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
 
 type repo struct {
-	ID        string	`yaml:"id"`
-	URL       string	`yaml:"url"`
-	Releases  bool		`yaml:"releases"`
-	Snapshots bool		`yaml:"snapshots"`
+	ID        string `yaml:"id"`
+	URL       string `yaml:"url"`
+	Releases  bool   `yaml:"releases"`
+	Snapshots bool   `yaml:"snapshots"`
 }
 
 // Settings for the plugin.
 type Settings struct {
-	UseCentral bool		`yaml:"use_central"`
-	Servers    []server	`yaml:"servers"`
-	Repos      []repo	`yaml:"repos"`
+	UseCentral bool     `yaml:"use_central"`
+	Servers    []server `yaml:"servers"`
+	Repos      []repo   `yaml:"repos"`
 }
 
 // Validate handles the settings validation of the plugin.
@@ -97,7 +97,11 @@ func (p *Plugin) Execute() error {
 	if err == nil {
 		home = user.HomeDir
 	}
-	settingsPath := path.Join(home, ".m2", "settings.xml")
+
+	m2Path := path.Join(home, ".m2")
+	// Prepare and create .m2 directory if missing.
+	os.MkdirAll(m2Path, os.ModePerm)
+	settingsPath := path.Join(m2Path, "settings.xml")
 	settingsFile, err := os.Create(settingsPath)
 	if err != nil {
 		fmt.Println(err)
