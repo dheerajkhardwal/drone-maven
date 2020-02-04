@@ -6,6 +6,7 @@
 package main
 
 import (
+	"fmt"
 	"encoding/json"
 
 	"github.com/dheerajkhardwal/drone-maven/plugin"
@@ -27,6 +28,7 @@ func (s *servers) Get() []plugin.Server {
 }
 
 func (s *servers) Set(value string) error {
+	fmt.Printf("Set(value) called for Servers with value: '%s'\n", value)
 	if !s.hasBeenSet {
 		s.servers = []plugin.Server{}
 		s.hasBeenSet = true
@@ -34,6 +36,7 @@ func (s *servers) Set(value string) error {
 
 	err := json.Unmarshal([]byte(value), &s.servers)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	s.hasBeenSet = true
@@ -56,6 +59,7 @@ func (r *repos) Get() []plugin.Repo {
 }
 
 func (r *repos) Set(value string) error {
+	fmt.Printf("Set(value) called for Repos with value: '%s'\n", value)
 	if !r.hasBeenSet {
 		r.repos = []plugin.Repo{}
 		r.hasBeenSet = true
@@ -63,6 +67,7 @@ func (r *repos) Set(value string) error {
 
 	err := json.Unmarshal([]byte(value), &r.repos)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	r.hasBeenSet = true

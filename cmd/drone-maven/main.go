@@ -8,6 +8,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/drone-plugins/drone-plugin-lib/errors"
@@ -35,18 +36,22 @@ func main() {
 
 func run(ctx *cli.Context) error {
 	urfave.LoggingFromContext(ctx)
-
+	fmt.Println("Creating new plugin instance using cli.Context")
 	plugin := plugin.New(
 		settingsFromContext(ctx),
 		urfave.PipelineFromContext(ctx),
 		urfave.NetworkFromContext(ctx),
 	)
 
+	fmt.Println("Calling plugin.Validate()")
 	if err := plugin.Validate(); err != nil {
+		fmt.Println(err)
 		return err
 	}
 
+	fmt.Println("Calling plugin.Execute()")
 	if err := plugin.Execute(); err != nil {
+		fmt.Println(err)
 		return err
 	}
 
