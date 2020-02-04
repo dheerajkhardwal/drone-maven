@@ -6,6 +6,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -32,7 +33,13 @@ const settingsTemplate = `
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <repositories>
+			<repositories>
+				{{if .UseCentral}}
+                <repository>
+                    <id>central</id>
+                    <url>https://repo.maven.apache.org/maven2/</url>
+                </repository> 
+                {{end}}
                 {{range .Repos}}
                 <repository>
                     <id>{{.ID}}</id>
@@ -50,12 +57,6 @@ const settingsTemplate = `
                     {{end}}
                 </repository>
 				{{end}}
-				{{if .UseCentral}}
-                <repository>
-                    <id>central</id>
-                    <url>https://repo.maven.apache.org/maven2/</url>
-                </repository> 
-                {{end}}
             </repositories>
         </profile>
     </profiles>
@@ -87,6 +88,46 @@ type Settings struct {
 // Validate handles the settings validation of the plugin.
 func (p *Plugin) Validate() error {
 	// Validation of the settings.
+	settings := p.settings
+	log.WithField("use_central", settings.UseCentral).Debug("Configuration to use central repository")
+	servers := settings.Servers
+	if len(servers) == 0 {
+		log.Warn("No server configured in settings")
+	} else {
+		for index := range servers {
+			server := servers[index]
+			if server.ID == "" {
+				log.Error("`id` field missing for server entry")
+				return errors.New("missing 'id' field in server entry")
+			}
+			if server.Username == "" {
+				log.Error("`username` field missing for server entry")
+				return errors.New("missing 'username' field in server entry")
+			}
+			if server.Password == "" {
+				log.Error("`password` field missing for server entry")
+				return errors.New("missing 'password' field in server entry")
+			}
+		}
+	}
+
+	repos := settings.Repos
+	if len(repos) == 0 {
+		log.Warn("No repo configured in settings")
+	} else {
+		for index := range repos {
+			repo := repos[index]
+			if repo.ID == "" {
+				log.Error("`id` field missing for repository entry")
+				return errors.New("missing 'id' field in repository entry")
+			}
+			if repo.URL == "" {
+				log.Error("`url` field missing for repository entry")
+				return errors.New("missing 'url' field in repository entry")
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -97,24 +138,23 @@ func (p *Plugin) Execute() error {
 	if err == nil {
 		home = user.HomeDir
 	}
+	fmt.Printf("Resolved home directory: %s", home)
 
 	m2Path := path.Join(home, ".m2")
 	// Prepare and create .m2 directory if missing.
 	os.MkdirAll(m2Path, os.ModePerm)
 	settingsPath := path.Join(m2Path, "settings.xml")
+	fmt.Printf("Settings file path: %s\n", settingsPath)
 	settingsFile, err := os.Create(settingsPath)
 	if err != nil {
-		fmt.Println(err)
 		settingsFile.Close()
-		return nil
+		fmt.Println(err)
+		return err
 	}
-
-	log.WithFields(log.Fields{
-		"path": settingsPath,
-	}).Info("Writing settings.xml")
 
 	tmpl := template.Must(template.New("mvn").Parse(settingsTemplate))
 	tmpl.Execute(settingsFile, p.settings)
 	settingsFile.Close()
+	fmt.Println("Created settings file successfully.")
 	return nil
 }
