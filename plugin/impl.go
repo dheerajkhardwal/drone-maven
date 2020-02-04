@@ -34,10 +34,10 @@ const settingsTemplate = `
                 <activeByDefault>true</activeByDefault>
             </activation>
 			<repositories>
-				{{if .UseCentral}}
+				{{if .Central}}
                 <repository>
                     <id>central</id>
-                    <url>https://repo.maven.apache.org/maven2/</url>
+                    <url>{{.CentralRepo}}</url>
                 </repository> 
                 {{end}}
                 {{range .Repos}}
@@ -52,7 +52,8 @@ const settingsTemplate = `
                     {{end}}
                     {{if .Snapshots}}
                     <snapshots>
-                        <enabled>true</enabled>
+						<enabled>true</enabled>
+						<updatePolicy>always</updatePolicy>
                     </snapshots>
                     {{end}}
                 </repository>
@@ -64,10 +65,10 @@ const settingsTemplate = `
 `
 
 // Server structure.
-type Server struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+type server struct {
+	ID       string
+	Username string
+	Password string
 }
 
 // Repo structure.
@@ -80,36 +81,28 @@ type Repo struct {
 
 // Settings for the plugin.
 type Settings struct {
-	UseCentral bool     `json:"use_central"`
-	Servers    []Server `json:"servers"`
-	Repos      []Repo   `json:"repos"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Repos       []Repo `json:"repos"`
+	Central     bool   `json:"central"`
+	CentralRepo string `json:"central_repo"`
+}
+
+type internalSettings struct {
+	Servers     []server
+	Repos       []Repo
+	Central     bool
+	CentralRepo string
 }
 
 // Validate handles the settings validation of the plugin.
 func (p *Plugin) Validate() error {
 	// Validation of the settings.
 	settings := p.settings
-	log.WithField("use_central", settings.UseCentral).Debug("Configuration to use central repository")
-	servers := settings.Servers
-	if len(servers) == 0 {
-		log.Warn("No server configured in settings")
-	} else {
-		for index := range servers {
-			server := servers[index]
-			if server.ID == "" {
-				log.Error("`id` field missing for server entry")
-				return errors.New("missing 'id' field in server entry")
-			}
-			if server.Username == "" {
-				log.Error("`username` field missing for server entry")
-				return errors.New("missing 'username' field in server entry")
-			}
-			if server.Password == "" {
-				log.Error("`password` field missing for server entry")
-				return errors.New("missing 'password' field in server entry")
-			}
-		}
-	}
+	log.WithFields(log.Fields{
+		"enabled": settings.Central,
+		"repo":    settings.CentralRepo,
+	}).Debug("Configuration for central repository")
 
 	repos := settings.Repos
 	if len(repos) == 0 {
@@ -152,8 +145,22 @@ func (p *Plugin) Execute() error {
 		return err
 	}
 
+	repos := p.settings.Repos
+	username := p.settings.Username
+	password := p.settings.Password
+	// Transform p.settings to internalSettings.
+	settings := &internalSettings{}
+	settings.Repos = repos
+	settings.Central = p.settings.Central
+	settings.CentralRepo = p.settings.CentralRepo
+	settings.Servers = make([]server, len(repos)) // Initialize servers
+	// For each repo, create a server with given repo ID
+	for i := 0; i < len(repos); i++ {
+		settings.Servers[i] = server{repos[i].ID, username, password}
+	}
+
 	tmpl := template.Must(template.New("mvn").Parse(settingsTemplate))
-	tmpl.Execute(settingsFile, p.settings)
+	tmpl.Execute(settingsFile, settings)
 	settingsFile.Close()
 	fmt.Println("Created settings file successfully.")
 	return nil

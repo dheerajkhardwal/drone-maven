@@ -6,18 +6,18 @@
 package plugin
 
 import (
-	"testing"
 	"github.com/drone-plugins/drone-plugin-lib/drone"
+	"testing"
 )
 
 func TestPlugin(t *testing.T) {
 	settings := Settings{
-		UseCentral: false,
-		Servers: []Server{
-			{ID: "releases", Username: "dheeraj@domain.io", Password: "HelloHello!"},
-		},
+		Central:  false,
+		Username: "dheeraj@domain.io",
+		Password: "HelloHello!",
 		Repos: []Repo{
 			{ID: "releases", URL: "https://repo.domain.io/maven-releases", Releases: true, Snapshots: false},
+			{ID: "snapshots", URL: "https://repo.domain.io/maven-snapshots", Releases: false, Snapshots: true},
 		},
 	}
 

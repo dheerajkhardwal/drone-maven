@@ -6,43 +6,12 @@
 package main
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 
 	"github.com/dheerajkhardwal/drone-maven/plugin"
 	"github.com/urfave/cli/v2"
 )
-
-// Servers structure
-type servers struct {
-	servers    []plugin.Server
-	hasBeenSet bool
-}
-
-func (s *servers) String() string {
-	return ""
-}
-
-func (s *servers) Get() []plugin.Server {
-	return s.servers
-}
-
-func (s *servers) Set(value string) error {
-	fmt.Printf("Set(value) called for Servers with value: '%s'\n", value)
-	if !s.hasBeenSet {
-		s.servers = []plugin.Server{}
-		s.hasBeenSet = true
-	}
-
-	err := json.Unmarshal([]byte(value), &s.servers)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	s.hasBeenSet = true
-
-	return nil
-}
 
 // Repos structure
 type repos struct {
@@ -59,7 +28,6 @@ func (r *repos) Get() []plugin.Repo {
 }
 
 func (r *repos) Set(value string) error {
-	fmt.Printf("Set(value) called for Repos with value: '%s'\n", value)
 	if !r.hasBeenSet {
 		r.repos = []plugin.Repo{}
 		r.hasBeenSet = true
@@ -79,17 +47,17 @@ func (r *repos) Set(value string) error {
 func settingsFlags() []cli.Flag {
 	// Replace below with all the flags required for the plugin.
 	return []cli.Flag{
-		&cli.BoolFlag{
-			Name:    "use-central",
-			Usage:   "use maven central repository",
-			Value:   false,
-			EnvVars: []string{"PLUGIN_USE_CENTRAL"},
+		&cli.StringFlag{
+			Name:    "username",
+			Usage:   "username for maven repository",
+			EnvVars: []string{"PLUGIN_USERNAME"},
+			Required: true,
 		},
-		&cli.GenericFlag{
-			Name:    "servers",
-			Usage:   "servers for authentication",
-			EnvVars: []string{"PLUGIN_SERVERS"},
-			Value:   &servers{},
+		&cli.StringFlag{
+			Name:    "password",
+			Usage:   "password for maven repository",
+			EnvVars: []string{"PLUGIN_PASSWORD"},
+			Required: true,
 		},
 		&cli.GenericFlag{
 			Name:    "repos",
@@ -97,14 +65,28 @@ func settingsFlags() []cli.Flag {
 			EnvVars: []string{"PLUGIN_REPOS"},
 			Value:   &repos{},
 		},
+		&cli.BoolFlag{
+			Name:    "central",
+			Usage:   "enable maven central repository",
+			Value:   false,
+			EnvVars: []string{"PLUGIN_CENTRAL"},
+		},
+		&cli.StringFlag{
+			Name:    "central_repo",
+			Usage:   "maven central repository",
+			Value:   "https://repo.maven.apache.org/maven2/",
+			EnvVars: []string{"PLUGIN_CENTRAL_REPO"},
+		},
 	}
 }
 
 // settingsFromContext creates a plugin.Settings from the cli.Context.
 func settingsFromContext(ctx *cli.Context) plugin.Settings {
 	return plugin.Settings{
-		UseCentral: ctx.Bool("use-central"),
-		Servers:    ctx.Generic("servers").(*servers).Get(),
-		Repos:      ctx.Generic("repos").(*repos).Get(),
+		Username: ctx.String("username"),
+		Password: ctx.String("password"),
+		Repos:    ctx.Generic("repos").(*repos).Get(),
+		Central:  ctx.Bool("central"),
+		CentralRepo: ctx.String("central_repo"),
 	}
 }
