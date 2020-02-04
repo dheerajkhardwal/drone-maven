@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Drone Plugins project authors.
+// Copyright (c) 2020, the Drone Maven project authors.
 // Please see the AUTHORS file for details. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be
 // found in the LICENSE file.
@@ -7,12 +7,11 @@ package plugin
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/user"
 	"path"
 	"text/template"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const settingsTemplate = `
@@ -34,12 +33,6 @@ const settingsTemplate = `
                 <activeByDefault>true</activeByDefault>
             </activation>
             <repositories>
-                {{if .UseCentral}}
-                <repository>
-                    <id>central</id>
-                    <url>https://repo.maven.apache.org/maven2/</url>
-                </repository> 
-                {{end}}
                 {{range .Repos}}
                 <repository>
                     <id>{{.ID}}</id>
@@ -56,6 +49,12 @@ const settingsTemplate = `
                     </snapshots>
                     {{end}}
                 </repository>
+				{{end}}
+				{{if .UseCentral}}
+                <repository>
+                    <id>central</id>
+                    <url>https://repo.maven.apache.org/maven2/</url>
+                </repository> 
                 {{end}}
             </repositories>
         </profile>
@@ -64,24 +63,25 @@ const settingsTemplate = `
 `
 
 // Server structure.
-type server struct {
-	ID       string `yaml:"id"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+type Server struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
-type repo struct {
-	ID        string `yaml:"id"`
-	URL       string `yaml:"url"`
-	Releases  bool   `yaml:"releases"`
-	Snapshots bool   `yaml:"snapshots"`
+// Repo structure.
+type Repo struct {
+	ID        string `json:"id"`
+	URL       string `json:"url"`
+	Releases  bool   `json:"releases"`
+	Snapshots bool   `json:"snapshots"`
 }
 
 // Settings for the plugin.
 type Settings struct {
-	UseCentral bool     `yaml:"use_central"`
-	Servers    []server `yaml:"servers"`
-	Repos      []repo   `yaml:"repos"`
+	UseCentral bool     `json:"use_central"`
+	Servers    []Server `json:"servers"`
+	Repos      []Repo   `json:"repos"`
 }
 
 // Validate handles the settings validation of the plugin.

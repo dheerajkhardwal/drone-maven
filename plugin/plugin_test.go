@@ -13,10 +13,10 @@ import (
 func TestPlugin(t *testing.T) {
 	settings := Settings{
 		UseCentral: false,
-		Servers: []server{
+		Servers: []Server{
 			{ID: "releases", Username: "dheeraj@domain.io", Password: "HelloHello!"},
 		},
-		Repos: []repo{
+		Repos: []Repo{
 			{ID: "releases", URL: "https://repo.domain.io/maven-releases", Releases: true, Snapshots: false},
 		},
 	}
