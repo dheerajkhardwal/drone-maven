@@ -34,28 +34,17 @@ const settingsTemplate = `
                 <activeByDefault>true</activeByDefault>
             </activation>
 			<repositories>
-				{{if .Central}}
-                <repository>
-                    <id>central</id>
-                    <url>{{.CentralRepo}}</url>
-                </repository> 
-                {{end}}
                 {{range .Repos}}
                 <repository>
                     <id>{{.ID}}</id>
                     <url>{{.URL}}</url>
-                    <layout>default</layout>
-                    {{if .Releases}}
                     <releases>
-                        <enabled>true</enabled>
+                        <enabled>{{.Releases}}</enabled>
                     </releases> 
-                    {{end}}
-                    {{if .Snapshots}}
                     <snapshots>
-						<enabled>true</enabled>
+						<enabled>{{.Snapshots}}</enabled>
 						<updatePolicy>always</updatePolicy>
                     </snapshots>
-                    {{end}}
                 </repository>
 				{{end}}
             </repositories>
@@ -89,10 +78,8 @@ type Settings struct {
 }
 
 type internalSettings struct {
-	Servers     []server
-	Repos       []Repo
-	Central     bool
-	CentralRepo string
+	Servers []server
+	Repos   []Repo
 }
 
 // Validate handles the settings validation of the plugin.
@@ -131,37 +118,42 @@ func (p *Plugin) Execute() error {
 	if err == nil {
 		home = user.HomeDir
 	}
-	fmt.Printf("Resolved home directory: %s", home)
+	log.Infof("Resolved home directory: %s\n", home)
 
 	m2Path := path.Join(home, ".m2")
 	// Prepare and create .m2 directory if missing.
 	os.MkdirAll(m2Path, os.ModePerm)
 	settingsPath := path.Join(m2Path, "settings.xml")
-	fmt.Printf("Settings file path: %s\n", settingsPath)
+	log.Infof("Settings file path: %s\n", settingsPath)
 	settingsFile, err := os.Create(settingsPath)
 	if err != nil {
 		settingsFile.Close()
 		fmt.Println(err)
+		log.Error(err)
 		return err
 	}
 
-	repos := p.settings.Repos
+	repos := []Repo{}
 	username := p.settings.Username
 	password := p.settings.Password
 	// Transform p.settings to internalSettings.
 	settings := &internalSettings{}
-	settings.Repos = repos
-	settings.Central = p.settings.Central
-	settings.CentralRepo = p.settings.CentralRepo
-	settings.Servers = make([]server, len(repos)) // Initialize servers
+	settings.Servers = make([]server, len(p.settings.Repos)) // Initialize servers
 	// For each repo, create a server with given repo ID
-	for i := 0; i < len(repos); i++ {
-		settings.Servers[i] = server{repos[i].ID, username, password}
+	for i := 0; i < len(p.settings.Repos); i++ {
+		repo := p.settings.Repos[i]
+		settings.Servers[i] = server{repo.ID, username, password}
 	}
+
+	if p.settings.Central { // Append central repo.
+		repos = append(repos, Repo{"central", p.settings.CentralRepo, true, true})
+	}
+	repos = append(repos, p.settings.Repos...)
+	settings.Repos = repos
 
 	tmpl := template.Must(template.New("mvn").Parse(settingsTemplate))
 	tmpl.Execute(settingsFile, settings)
 	settingsFile.Close()
-	fmt.Println("Created settings file successfully.")
+	log.Info("Created settings file successfully.")
 	return nil
 }

@@ -12,7 +12,8 @@ import (
 
 func TestPlugin(t *testing.T) {
 	settings := Settings{
-		Central:  false,
+		Central:  true,
+		CentralRepo: "https://repo.apache.org/maven2",
 		Username: "dheeraj@domain.io",
 		Password: "HelloHello!",
 		Repos: []Repo{
